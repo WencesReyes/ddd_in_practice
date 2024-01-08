@@ -1,7 +1,6 @@
 ﻿using Core.Entities;
 using Core.ValueObjects;
-using Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
+using Infrastructure.Contexts;
 using System.ComponentModel;
 using System.Windows;
 using static Core.ValueObjects.Money;
@@ -15,6 +14,8 @@ namespace UI
     {
         private readonly SnackMachine _snackMachine;
 
+        private readonly DddInPracticeContext _dddInPracticeContext = new();
+
         public string MoneyInTransaction => _snackMachine.MoneyInTransaction.ToString();
 
         public Money MoneyInside => _snackMachine.MoneyInside + _snackMachine.MoneyInTransaction;
@@ -25,13 +26,9 @@ namespace UI
 
         public SnackMachineViewModel()
         {
-            _snackMachine = new SnackMachine();
+            _snackMachine = _dddInPracticeContext.SnackMachines.FirstOrDefault() ?? new();
 
             DataContext = this;
-
-            //var serviceProvider = new ServiceCollection()
-            //    .AddInfrastructureServices("test")
-            //    .BuildServiceProvider();
 
             InitializeComponent();
         }
@@ -61,6 +58,17 @@ namespace UI
         {
             _snackMachine.BuySnack();
 
+            if (_snackMachine.Id == default)
+            {
+                _dddInPracticeContext.SnackMachines.Add(_snackMachine);
+            }
+            else
+            {
+                _dddInPracticeContext.SnackMachines.Update(_snackMachine);
+            }
+
+            _dddInPracticeContext.SaveChanges();
+
             Message = "You bought a snack";
 
             OnPropertiesChanged();
@@ -85,6 +93,13 @@ namespace UI
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _dddInPracticeContext.Dispose();
+
+            base.OnClosing(e);
         }
     }
 }

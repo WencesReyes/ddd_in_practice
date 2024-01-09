@@ -1,8 +1,10 @@
 ﻿using Core.Entities;
 using Core.ValueObjects;
 using Infrastructure.Contexts;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
+using UI.Factories;
 using static Core.ValueObjects.Money;
 
 namespace UI
@@ -14,7 +16,7 @@ namespace UI
     {
         private readonly SnackMachine _snackMachine;
 
-        private readonly DddInPracticeContext _dddInPracticeContext = new();
+        private readonly DddInPracticeContext _dddInPracticeContext = ServiceCollectionSingleton.GetInstance().GetRequiredService<DddInPracticeContext>();
 
         public string MoneyInTransaction => _snackMachine.MoneyInTransaction.ToString();
 
@@ -93,13 +95,6 @@ namespace UI
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            _dddInPracticeContext.Dispose();
-
-            base.OnClosing(e);
         }
     }
 }

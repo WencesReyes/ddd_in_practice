@@ -1,8 +1,8 @@
-﻿using Infrastructure;
-using Infrastructure.Contexts;
+﻿using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
+using UI.Factories;
 
 namespace UI
 {
@@ -11,20 +11,26 @@ namespace UI
     /// </summary>
     public partial class App : Application
     {
+        private ServiceProvider? _serviceProvider;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            var serviceProvider = new ServiceCollection()
-                .AddInfrastructureServices("Server=localhost;Database=myDataBase;Trusted_Connection=True;TrustServerCertificate=True")
-                .BuildServiceProvider();
+            _serviceProvider = ServiceCollectionSingleton.GetInstance();
 
-            using (var scope = serviceProvider.CreateScope())
+            var db = _serviceProvider.GetRequiredService<DddInPracticeContext>();
+
+            db.Database.Migrate();       
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+
+            if (_serviceProvider is not null) 
             {
-                var db = scope.ServiceProvider.GetRequiredService<DddInPracticeContext>();
-                db.Database.Migrate();
+                _serviceProvider.Dispose();
             }
         }
     }
-
 }

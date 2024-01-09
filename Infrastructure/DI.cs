@@ -8,7 +8,7 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string connectionString)
         {
-            services.AddDbContext<DddInPracticeContext>(options => options.UseSqlServer(connectionString));
+            services.AddDbContext<DddInPracticeContext>(options => options.UseSqlServer(connectionString), optionsLifetime: ServiceLifetime.Singleton);
 
             return services;
         }
